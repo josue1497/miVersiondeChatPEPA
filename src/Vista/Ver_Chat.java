@@ -7,9 +7,14 @@ package Vista;
 
 import Controlador.controlador;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import javax.swing.*;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -21,7 +26,7 @@ import javax.swing.JScrollPane;
  *
  * @author Canaima1
  */
-public class Ver_Chat extends JFrame{
+public class Ver_Chat extends JFrame implements Runnable{
     
     JPanel derecho, izquierdo, Cabecera, pie, central;
     JLabel mensaje_entrante, mensaje_saliente;
@@ -34,18 +39,18 @@ public class Ver_Chat extends JFrame{
         this.setSize(300, 400);
         this.setLocationRelativeTo(null);
         this.setVisible(true);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);        
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        Thread hilo=new Thread(this);
+        hilo.start();       
         vista();
         control();
-    }
-    
+    }  
     public void vista(){
-        Container c=getContentPane();
-        
+        Container c=getContentPane();        
         C_derecho();
         C_cabecera();
         C_pie();
-        
+        central.updateUI();
         c.add(Cabecera, BorderLayout.NORTH);
         c.add(central, BorderLayout.CENTER);
         c.add(pie, BorderLayout.SOUTH);       
@@ -53,57 +58,39 @@ public class Ver_Chat extends JFrame{
     public void control(){
     controlador c1=new controlador(this);
     enviar.addActionListener(c1);
-    }
-    
+    }    
     public void C_derecho(){
         central=new JPanel();
-        central.setLayout(new BoxLayout(central,BoxLayout.Y_AXIS));
-        /*derecho=new JPanel();
+        central.setLayout(new GridLayout(1,0));
+        derecho=new JPanel();
         derecho.setLayout(new BoxLayout(derecho,BoxLayout.Y_AXIS));
         izquierdo=new JPanel();
         izquierdo.setLayout(new BoxLayout(izquierdo,BoxLayout.Y_AXIS));
+        izquierdo.setBorder(BorderFactory.createMatteBorder(0, 5,0,0, Color.BLACK));
         mensaje_entrante=new JLabel("hola");
-        mensaje_saliente=new JLabel("como estas");
-        
+        mensaje_saliente=new JLabel("como estas");        
         scrol1=new JScrollPane();
         scrol2=new JScrollPane();
-        
-        scrol1.setViewportView(mensaje_entrante);
-        //scrol1.setHorizontalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrol2.setViewportView(mensaje_saliente);
-        
-        derecho.add(scrol1);
-        izquierdo.add(scrol2);
-        
+        scrol1.setViewportView(mensaje_entrante);        
+        scrol2.setViewportView(mensaje_saliente);        
+        derecho.add(mensaje_entrante);
+        izquierdo.add(mensaje_saliente);        
         central.add(derecho);
-        central.add(izquierdo); */      
-        
-    }
-    
-    public void C_cabecera(){
-        
-        Cabecera=new JPanel(new GridLayout());
-        
-        JLabel titulo=new JLabel("Titulo");
-        
-        Cabecera.add(titulo);
-        
-    
-    }
-    
-    public void C_pie(){
-        
-        pie=new JPanel(new GridLayout(1,3));
-        JLabel titulo=new JLabel("Titulo");
-        
+        central.add(izquierdo);         
+    }    
+    public void C_cabecera(){        
+        Cabecera=new JPanel(new GridLayout());        
+        JLabel titulo=new JLabel("Titulo");        
+        Cabecera.add(titulo);}   
+    public void C_pie(){        
+        pie=new JPanel();
+        pie.setLayout(new BoxLayout(pie,BoxLayout.X_AXIS));
+        JLabel titulo=new JLabel("Titulo");        
         mensaje=new JTextField();
-        enviar=new JButton("Enviar");
-        
+        enviar=new JButton("Enviar");        
         pie.add(titulo);
         pie.add(mensaje);
-        pie.add(enviar);
-        
-        
+        pie.add(enviar);       
     }
 
     public JPanel getDerecho() {
@@ -193,6 +180,30 @@ public class Ver_Chat extends JFrame{
     public void setMensaje(JTextField mensaje) {
         this.mensaje = mensaje;
     }
-    
+
+    @Override
+    public void run() {
+        String menj;
+        while (true){
+        try {
+            ServerSocket entrada=new ServerSocket(4444);
+            Socket sock=entrada.accept();
+            DataInputStream flujoEntrada=new DataInputStream(sock.getInputStream());
+            menj=flujoEntrada.readUTF();           
+            JPanel panel=new JPanel();
+            panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
+            panel.setBorder(BorderFactory.createLineBorder(Color.red, 1, true));            
+            JLabel texto=new JLabel("Externo: "+menj);
+            panel.add(texto);
+           izquierdo.add(panel,BorderLayout.EAST);
+           central.updateUI();            
+            flujoEntrada.close();
+            sock.close();
+            entrada.close();
+        } catch (IOException ex) {
+            System.out.println("Error en el puerto del Servidor cliente"+ex);
+        }
+        }
+    }
     
 }

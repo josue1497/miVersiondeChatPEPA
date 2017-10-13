@@ -6,13 +6,20 @@
 package Controlador;
 
 import Vista.Ver_Chat;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
@@ -23,25 +30,37 @@ import javax.swing.border.LineBorder;
  */
 public class controlador implements ActionListener{
     Ver_Chat aux;
-
     public controlador(Ver_Chat aux) {
         this.aux = aux;
     }
-    
-    
+    public controlador() {
+        aux=aux;
+    }   
     @Override
     public void actionPerformed(ActionEvent e) {
         if(aux.getEnviar()==e.getSource()){
             JPanel panel=new JPanel();
             panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
-            JLabel text=new JLabel("Yo: "+aux.getMensaje().getText());
-            panel.setBorder(BorderFactory.createLineBorder(Color.yellow, 5, true));
+            String a="Yo: ";
+            JLabel text=new JLabel(a+aux.getMensaje().getText());
+            if(text.getText().equals(a)){
+            }else{
+            panel.setBorder(BorderFactory.createLineBorder(Color.yellow, 1, true));
             panel.add(text);
-            aux.getCentral().add(panel);
+            aux.getDerecho().add(panel,BorderLayout.WEST);           
+             try {
+                Socket socketSalida=new Socket("10.1.11.125",5555);
+                DataOutputStream salida=new DataOutputStream(socketSalida.getOutputStream());
+                
+                salida.writeUTF(aux.getMensaje().getText());
+                salida.close();
+                socketSalida.close();
+            } catch (IOException ex) {
+                 System.out.println("Error en el puerto");           
+            }               
             aux.getCentral().updateUI();
-            aux.getMensaje().setText("");
+            aux.getMensaje().setText("");            
+            }
         }
-    }
-    
-    
+    }   
 }
