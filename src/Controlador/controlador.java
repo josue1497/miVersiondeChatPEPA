@@ -14,8 +14,12 @@ import java.awt.event.ActionListener;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
@@ -39,6 +43,12 @@ public class controlador implements ActionListener{
     @Override
     public void actionPerformed(ActionEvent e) {
         if(aux.getEnviar()==e.getSource()){
+            String ip=null;
+            try {
+                ip = InetAddress.getLocalHost().getHostAddress();
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(controlador.class.getName()).log(Level.SEVERE, null, ex);
+            }
             JPanel panel=new JPanel();
             panel.setLayout(new BoxLayout(panel,BoxLayout.Y_AXIS));
             String a="Yo: ";
@@ -49,7 +59,7 @@ public class controlador implements ActionListener{
             panel.add(text);
             aux.getDerecho().add(panel,BorderLayout.WEST);           
              try {
-                Socket socketSalida=new Socket("10.1.11.125",5555);
+                Socket socketSalida=new Socket(ip,5555);
                 DataOutputStream salida=new DataOutputStream(socketSalida.getOutputStream());
                 
                 salida.writeUTF(aux.getMensaje().getText());
